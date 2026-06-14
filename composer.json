@@ -13,7 +13,8 @@
   "minimum-stability": "stable",
   "extra": {
     "moduleClass": "Besnovatyj\\Documents\\Module",
-    "moduleId": "Documents"
+    "moduleId": "Documents",
+    "bescms": { "kind": "module" }
   },
   "keywords": [
     "yii2",
