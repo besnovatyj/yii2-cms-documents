@@ -9,7 +9,7 @@ namespace Besnovatyj\Documents\controllers\backend;
 
 
 use common\components\controller\ControllerTrait;
-use common\components\urlmanager\UrlManagerHelperTrait;
+use Besnovatyj\Kernel\urlmanager\UrlManagerHelperTrait;
 use Exception;
 use Besnovatyj\Documents\entities\Document;
 use Besnovatyj\Documents\forms\backend\DocumentForm;
