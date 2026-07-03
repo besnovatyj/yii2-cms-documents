@@ -7,7 +7,7 @@
 
 namespace Besnovatyj\Documents\controllers\frontend;
 
-use common\components\controller\ControllerTrait;
+use Besnovatyj\Kernel\controller\ControllerTrait;
 use Exception;
 use Besnovatyj\Documents\readModels\CategoryReadRepository;
 use Besnovatyj\Documents\readModels\DocumentsReadRepository;

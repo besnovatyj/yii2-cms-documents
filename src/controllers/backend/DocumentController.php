@@ -8,7 +8,7 @@
 namespace Besnovatyj\Documents\controllers\backend;
 
 
-use common\components\controller\ControllerTrait;
+use Besnovatyj\Kernel\controller\ControllerTrait;
 use Besnovatyj\Kernel\urlmanager\UrlManagerHelperTrait;
 use Exception;
 use Besnovatyj\Documents\entities\Document;
