@@ -27,7 +27,7 @@ class CategoryController extends TreeController
                     'slug' => $model->slug,
                 ];
             },
-            ['id', 'name', 'slug'],
+            'sort_order',
         );
         $this->createFormClass = CategoryForm::class;
         $this->updateFormClass = CategoryForm::class;
