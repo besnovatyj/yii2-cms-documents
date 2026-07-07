@@ -42,7 +42,7 @@ class CategoryReadRepository
         return Category::find()->andWhere(['slug' => $slug])->one();
     }
 
-    public function getTreeWithSubsOf(Category $category = null): array
+    public function getTreeWithSubsOf(?Category $category = null): array
     {
         $query = Category::find()->andWhere(['status' => 1])->orderBy(['lft' => SORT_ASC]);
         if ($category) {
