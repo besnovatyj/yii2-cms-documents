@@ -14,6 +14,10 @@ use Besnovatyj\Documents\Module;
  * Объявляется через `extra.config-plugin`, собирается modman в merge-plan и мёржится в рантайме.
  * Содержит регистрацию модуля. Меню (adminMenu) и миграции остаются вкладами modman. Значения берутся
  * из статических методов {@see Module} — единый источник, без дублирования.
+ *
+ * URL-правила фронтенда — вклад в `frontendUrlManager` группы `common` (см. README_Yii2_Modules.md).
+ * Перенесены из захардкоженного `frontend/config/url-manager.php`; первый сегмент роута капитализирован
+ * под реальный id модуля 'Documents'. Гейтятся modman.
  */
 return [
     'modules' => [
@@ -22,5 +26,15 @@ return [
             Module::moduleConfig(),
             ['version' => Module::moduleVersion()],
         ),
+    ],
+    'components' => [
+        'frontendUrlManager' => [
+            'rules' => [
+                'documents'                           => 'Documents/document/index',
+                'documents/<id:\d+>'                  => 'Documents/document/actor',
+                'documents/<slug:[\w\-]+>/<page:\d+>' => 'Documents/document/category', // <page> — пагинация
+                'documents/<slug:[\w\-]+>'            => 'Documents/document/category',
+            ],
+        ],
     ],
 ];
