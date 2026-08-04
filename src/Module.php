@@ -13,7 +13,8 @@ use Besnovatyj\Contracts\module\ProvidesDirectories;
 use Besnovatyj\Contracts\module\ProvidesMigrations;
 use Besnovatyj\Contracts\menu\MenuTarget;
 use Besnovatyj\Contracts\menu\MenuTargetProvider;
-use Besnovatyj\Documents\readModels\CategoryReadRepository;
+use Besnovatyj\Documents\entities\Category;
+use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 
 class Module extends CmsModule implements
     DeclaresModule, ProvidesAdminMenu,
@@ -65,12 +66,7 @@ class Module extends CmsModule implements
      */
     private function categorySlugMap(): array
     {
-        $map = [];
-        foreach ((new CategoryReadRepository())->getAll() as $category) {
-            $prefix = $category->depth > 0 ? str_repeat('— ', (int)$category->depth) : '';
-            $map[$category->slug] = $prefix . $category->name;
-        }
-        return $map;
+        return (new TreeQueryScope(Category::class))->dropdownTree(keyAttribute: 'slug', indent: '— ');
     }
 
 }
