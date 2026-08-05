@@ -95,14 +95,14 @@ class DocumentForm extends CompositeForm
             $this->addError('externalUrl', 'Необходимо либо загрузить файл, либо указать внешнюю ссылку.');
         }
 
-        if ($this->file) {
-            // Yii сам проверит UploadedFile, но можно добавить mime-валидацию
-            $allowedTypes = ['pdf', 'docx', 'xlsx', 'jpg', 'png','zip'];
-            $ext = strtolower(pathinfo($this->file->name, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedTypes)) {
-                $this->addError('file', 'Недопустимый тип файла.');
-            }
-        }
+//        if ($this->file) {
+//            // Yii сам проверит UploadedFile, но можно добавить mime-валидацию
+//            $allowedTypes = ['pdf', 'docx', 'xlsx', 'jpg', 'png','zip'];
+//            $ext = strtolower(pathinfo($this->file->name, PATHINFO_EXTENSION));
+//            if (!in_array($ext, $allowedTypes)) {
+//                $this->addError('file', 'Недопустимый тип файла.');
+//            }
+//        }
 
         if ($this->externalUrl && !filter_var($this->externalUrl, FILTER_VALIDATE_URL)) {
             $this->addError('externalUrl', 'Некорректный URL.');
