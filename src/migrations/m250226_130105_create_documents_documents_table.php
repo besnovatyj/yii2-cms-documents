@@ -38,7 +38,11 @@ class m250226_130105_create_documents_documents_table extends BaseMigration
             'external_url' => $this->string(255)->null()
                 ->comment('Внешняя ссылка (если это ссылка на файлообменник)'),
             'original_filename' => $this->string(255)->null()
-                ->comment('Имя файла при загрузке. Включая расширение.'),
+                ->comment('Ключ хранения: санитизированное имя файла на диске. Включая расширение.'),
+            'original_name' => $this->string(255)->null()
+                ->comment('Оригинальное имя файла как его загрузил пользователь (для отдачи при скачивании). Включая расширение.'),
+            'extension' => $this->string(32)->null()
+                ->comment('Расширение файла без точки (например: pdf, rar, docx)'),
             'mime_type' => $this->string(255)->null()
                 ->comment('MIME-тип файла (например, application/pdf, image/jpeg)'),
             'file_size' => $this->integer(10)->null()

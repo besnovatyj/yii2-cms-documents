@@ -43,11 +43,15 @@ class DocumentsManageService
 
         $mimeType = null;
         $fileSize = null;
+        $originalName = null;
+        $extension = null;
 
         if ($form->file instanceof UploadedFile) {
             $type = 'file';
             $mimeType = $form->file->type;
             $fileSize = $form->file->size;
+            $originalName = $form->file->name;
+            $extension = $form->file->getExtension() ?: null;
         } else {
             $type = 'link';
         }
@@ -67,6 +71,8 @@ class DocumentsManageService
                 $form->meta->keywords
             ),
             $form->file,
+            $originalName,
+            $extension,
         );
         $this->documents->save($document);
         return $document;

@@ -38,7 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'layout' => "{summary}\n{items}",
             'columns' => [
                 'id',
-                'original_filename',
+                'original_name',
                 [
                     'attribute' => 'external_url',
                     'value' => function (Document $model) {

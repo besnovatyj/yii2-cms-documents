@@ -8,12 +8,12 @@
 namespace Besnovatyj\Documents\controllers\frontend;
 
 use Besnovatyj\Kernel\controller\ControllerTrait;
-use Exception;
 use Besnovatyj\Documents\readModels\CategoryReadRepository;
 use Besnovatyj\Documents\readModels\DocumentsReadRepository;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 class DocumentController extends Controller
 {
@@ -77,14 +77,30 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function actionDownload(int $id): void
+    /**
+     * @throws NotFoundHttpException
+     */
+    public function actionDownload(int $id): Response
     {
-        try {
-            $document = $this->documents->find($id);
-            Yii::$app->response->sendFile($document->getUploadPath('original_filename'), $document->original_filename)->send();
-        } catch (Exception $e) {
-            $this->handleDomainException($e);
+        if (!$document = $this->documents->find($id)) {
+            throw new NotFoundHttpException('The requested document does not exist.');
         }
+
+        // Документ-ссылка на внешний файлообменник — перенаправляем на него.
+        if ($document->type === 'link' && !empty($document->external_url)) {
+            return $this->redirect($document->external_url);
+        }
+
+        $path = $document->getUploadPath('original_filename');
+        if ($path === null || !is_file($path)) {
+            throw new NotFoundHttpException('Файл документа не найден.');
+        }
+
+        // Отдаём файл под оригинальным именем пользователя (с fallback на title + расширение).
+        $downloadName = $document->original_name
+            ?: $document->title . ($document->extension ? '.' . $document->extension : '');
+
+        return Yii::$app->response->sendFile($path, $downloadName);
     }
 
 }

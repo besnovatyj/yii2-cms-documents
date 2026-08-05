@@ -55,6 +55,8 @@ $this->params['breadcrumbs'][] = $this->title;
                         'description',
                         'type',
                         'external_url',
+                        'original_name',
+                        'extension',
                         'original_filename',
                         'mime_type',
                         'file_size:shortSize',

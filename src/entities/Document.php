@@ -26,7 +26,9 @@ use yii\web\UploadedFile;
  * @property string|null $description - Описание документа
  * @property string $type - Тип документа: file или link
  * @property string|null $external_url - Внешняя ссылка (если это ссылка на файлообменник)
- * @property string|null $original_filename - Имя файла при загрузке (для ссылок можно не использовать или хранить условно). Включая расширение
+ * @property string|null $original_filename - Ключ хранения: санитизированное имя файла на диске (управляется UploadBehavior). Включая расширение
+ * @property string|null $original_name - Оригинальное имя файла как его загрузил пользователь (для отдачи при скачивании). Включая расширение
+ * @property string|null $extension - Расширение файла без точки (например: pdf, rar, docx)
  * @property string|null $mime_type - MIME-тип файла (например, application/pdf, image/jpeg)
  * @property integer|null $file_size - Размер файла в байтах (для локальных файлов; для ссылок — можно не заполнять или получать через API)
  * @property integer $category_id - Идентификатор категории
@@ -51,7 +53,7 @@ class Document extends ActiveRecord
      * @throws \DateInvalidTimeZoneException
      * @throws Exception
      */
-    public static function create($title, $description, $type, $external_url, $mime_type, $file_size, $categoryId, $status, Meta $meta, UploadedFile|null $original_filename): self
+    public static function create($title, $description, $type, $external_url, $mime_type, $file_size, $categoryId, $status, Meta $meta, UploadedFile|null $original_filename, ?string $original_name = null, ?string $extension = null): self
     {
         $document = new static();
         $document->title = $title;
@@ -63,7 +65,11 @@ class Document extends ActiveRecord
         $document->category_id = $categoryId;
         $document->status = $status;
         $document->created_at = new DateTimeImmutable('now', new DateTimeZone(Yii::$app->timeZone))->setTimezone(new DateTimeZone('UTC'))->format('Y.m.d H:i:s');
+        // UploadBehavior перетрёт original_filename санитизированным ключом хранения,
+        // поэтому читаемое имя и расширение сохраняем в отдельные колонки.
         $document->original_filename = $original_filename;
+        $document->original_name = $original_name;
+        $document->extension = $extension;
         $document->meta = $meta;
         return $document;
     }
