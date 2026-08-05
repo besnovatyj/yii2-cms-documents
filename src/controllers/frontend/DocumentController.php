@@ -40,7 +40,7 @@ class DocumentController extends Controller
         $dataProvider = $this->documents->getAll();
         $category = $this->categories->getRoot();
 
-        return $this->render('/frontend/document/index', [
+        return $this->render('index', [
             'category' => $category,
             'dataProvider' => $dataProvider,
         ]);
@@ -57,7 +57,7 @@ class DocumentController extends Controller
 
         $dataProvider = $this->documents->getAllByCategory($category);
 
-        return $this->render('/frontend/document/category', [
+        return $this->render('category', [
             'category' => $category,
             'dataProvider' => $dataProvider,
         ]);
@@ -72,7 +72,7 @@ class DocumentController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
-        return $this->render('/frontend/document/view', [
+        return $this->render('view', [
             'document' => $document,
         ]);
     }
