@@ -66,6 +66,8 @@ $this->params['breadcrumbs'][] = $this->title;
                             'value' => ArrayHelper::getValue($document, 'category.name'),
                             'format' => 'html',
                         ],
+                        'uploaded_at:datetime',
+                        'document_date:date',
                         'created_at:datetime',
                         'updated_at:datetime',
                         [
@@ -99,6 +101,59 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="card-footer clearfix"></div>
         </div>
+
+        <?php $manifest = $document->getManifest(); ?>
+        <?php if ($manifest !== null): ?>
+            <?php /* Список снят при загрузке архива. Нечитаемые имена означают, что архив
+                     упакован без пометки UTF-8: такой архив переупаковывается в ZIP заново. */ ?>
+            <div class="card">
+                <div class="card-header d-md-flex justify-content-md-between">
+                    <div class="pt-1">Archive content</div>
+                    <div class="pt-1 text-muted small">
+                        файлов: <?= $manifest->total ?>,
+                        <?= Yii::$app->formatter->asShortSize($manifest->unpackedSize(), 1) ?> без сжатия
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <?php if ($manifest->entries === []): ?>
+                        <p class="text-muted p-3 mb-0">Архив пуст.</p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Файл</th>
+                                    <th scope="col" class="text-nowrap">Размер</th>
+                                    <th scope="col" class="text-nowrap">В архиве</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($manifest->entries as $entry): ?>
+                                    <tr>
+                                        <td>
+                                            <?php if ($entry->encrypted): ?>
+                                                <span title="Файл защищён паролем" aria-hidden="true">&#128274;</span>
+                                            <?php endif; ?>
+                                            <?= Html::encode($entry->path) ?>
+                                        </td>
+                                        <td class="text-nowrap"><?= Yii::$app->formatter->asShortSize($entry->size, 1) ?></td>
+                                        <td class="text-nowrap"><?= Yii::$app->formatter->asShortSize($entry->packedSize, 1) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <?php if ($manifest->truncated): ?>
+                    <div class="card-footer text-muted small">
+                        Показаны первые <?= count($manifest->entries) ?> файлов из <?= $manifest->total ?>.
+                    </div>
+                <?php else: ?>
+                    <div class="card-footer clearfix"></div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

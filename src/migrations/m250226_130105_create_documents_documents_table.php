@@ -47,8 +47,14 @@ class m250226_130105_create_documents_documents_table extends BaseMigration
                 ->comment('MIME-тип файла (например, application/pdf, image/jpeg)'),
             'file_size' => $this->integer(10)->null()
                 ->comment('Размер файла в байтах'),
+            'manifest_json' => $this->text()->null()
+                ->comment('JSON-манифест содержимого архива (см. ArchiveManifest); NULL — не архив либо содержимое нечитаемо'),
             'category_id' => $this->integer(10)->notNull()
                 ->comment('Идентификатор категории'),
+            'uploaded_at' => $this->dateTime()->null()
+                ->comment('Дата загрузки документа в UTC: проставляется автоматически при создании, редактируется вручную'),
+            'document_date' => $this->date()->null()
+                ->comment('Дата создания самого документа (дата приказа, письма и т.п.); без времени и часового пояса'),
             'created_at' => $this->dateTime()->null()->defaultExpression('NOW()')
                 ->comment('Дата создания записи'),
             'updated_at' => $this->dateTime()->notNull()->defaultExpression('NOW()')->append('ON UPDATE NOW()')
@@ -59,6 +65,11 @@ class m250226_130105_create_documents_documents_table extends BaseMigration
                 ->comment('JSON of meta-obj'),
         ], $this->tableOptions);
         $this->addCommentOnTable(static::TABLE_NAME, 'Документы');
+
+        // Индексы под сортировку и фильтрацию списка на фронтенде.
+        $this->createIndexes(static::TABLE_NAME, 'title');
+        $this->createIndexes(static::TABLE_NAME, 'uploaded_at');
+        $this->createIndexes(static::TABLE_NAME, 'document_date');
 
         \Yii::$app->getDb()->createCommand("SET foreign_key_checks = 0")->execute();
         $this->createFKs(static::TABLE_NAME, 'category_id', m250226_130100_create_documents_categories_table::TABLE_NAME, 'id', 'CASCADE');

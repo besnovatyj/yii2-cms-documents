@@ -7,12 +7,14 @@
 
 namespace Besnovatyj\Documents\services\manage;
 
+use Besnovatyj\Documents\services\archive\ZipReader;
 use Besnovatyj\Meta\Meta;
 use DomainException;
 use Besnovatyj\Documents\entities\Document;
 use Besnovatyj\Documents\forms\backend\DocumentForm;
 use Besnovatyj\Documents\repositories\CategoryRepository;
 use Besnovatyj\Documents\repositories\DocumentRepository;
+use JsonException;
 use Random\RandomException;
 use Throwable;
 use yii\base\InvalidArgumentException;
@@ -24,14 +26,17 @@ class DocumentsManageService
 {
     private DocumentRepository $documents;
     private CategoryRepository $categories;
+    private ZipReader $archives;
 
     public function __construct(
         DocumentRepository $documents,
-        CategoryRepository $categories
+        CategoryRepository $categories,
+        ZipReader $archives
     )
     {
         $this->documents = $documents;
         $this->categories = $categories;
+        $this->archives = $archives;
     }
 
     /**
@@ -73,8 +78,11 @@ class DocumentsManageService
             $form->file,
             $originalName,
             $extension,
+            $form->uploadedAtUtc(),
+            $form->documentDateValue(),
         );
         $this->documents->save($document);
+        $this->refreshManifest($document);
         return $document;
     }
 
@@ -94,9 +102,32 @@ class DocumentsManageService
                 $form->meta->description,
                 $form->meta->keywords
             ),
+            $form->uploadedAtUtc(),
+            $form->documentDateValue(),
         );
         $document->changeMainCategory($category->id);
+
+        // Пустые поля источника означают «оставить прежний файл или ссылку»:
+        // трогаем их, только если редактор действительно прислал новое значение.
+        $fileReplaced = false;
+        if ($form->file instanceof UploadedFile) {
+            $document->changeFile(
+                $form->file,
+                $form->file->type,
+                $form->file->size,
+                $form->file->name,
+                $form->file->getExtension() ?: null,
+            );
+            $fileReplaced = true;
+        } elseif ($form->externalUrl && $form->externalUrl !== $document->external_url) {
+            $document->changeExternalUrl($form->externalUrl);
+        }
+
         $this->documents->save($document);
+
+        if ($fileReplaced) {
+            $this->refreshManifest($document);
+        }
     }
 
     /**
@@ -127,5 +158,29 @@ class DocumentsManageService
     {
         $document = $this->documents->get($id);
         $this->documents->remove($document);
+    }
+
+    /**
+     * Снимает список файлов архива и сохраняет его в документе.
+     *
+     * Вызывается только после записи документа: до неё UploadBehavior ещё не
+     * положил файл на диск. Нечитаемый архив — не повод отклонять загрузку:
+     * документ просто останется без списка содержимого.
+     *
+     * @throws JsonException
+     */
+    private function refreshManifest(Document $document): void
+    {
+        if (!$document->hasFile() || !$this->archives->supports($document->extension)) {
+            return;
+        }
+
+        $path = $document->getUploadPath('original_filename');
+        if ($path === null) {
+            return;
+        }
+
+        $document->setManifest($this->archives->readManifest($path));
+        $this->documents->updateManifest($document);
     }
 }

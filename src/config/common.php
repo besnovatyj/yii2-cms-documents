@@ -31,7 +31,7 @@ return [
         'frontendUrlManager' => [
             'rules' => [
                 'documents'                           => 'Documents/document/index',
-                'documents/<id:\d+>'                  => 'Documents/document/actor',
+                'documents/<id:\d+>'                  => 'Documents/document/view',
                 'documents/<slug:[\w\-]+>/<page:\d+>' => 'Documents/document/category', // <page> — пагинация
                 'documents/<slug:[\w\-]+>'            => 'Documents/document/category',
             ],

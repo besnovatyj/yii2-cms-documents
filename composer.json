@@ -34,12 +34,20 @@
     }
   },
   "require": {
-    "besnovatyj/yii2-cms-kernel": "^1.0",
+    "besnovatyj/yii2-cms-backend-widgets": "^1.0",
     "besnovatyj/yii2-cms-contracts": "^1.0",
+    "besnovatyj/yii2-cms-forms": "^1.0",
+    "besnovatyj/yii2-cms-helpers": "^1.0",
+    "besnovatyj/yii2-cms-kernel": "^1.0",
+    "besnovatyj/yii2-cms-meta": "^1.0",
+    "besnovatyj/yii2-cms-tree-manager": "^1.0",
+    "besnovatyj/yii2-cms-upload": "^1.0",
+    "besnovatyj/yii2-cms-validators": "^1.0",
+    "ext-mbstring": "*",
+    "ext-zip": "*",
     "php": ">=8.4",
     "yiisoft/yii2": "~2.0.0",
-    "yiisoft/yii2-bootstrap5": "~2.0.0",
-    "besnovatyj/yii2-cms-meta": "^1.0"
+    "yiisoft/yii2-bootstrap5": "~2.0.0"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest"

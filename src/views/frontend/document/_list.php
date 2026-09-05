@@ -18,30 +18,38 @@ use yii\web\View;
 
 ?>
 
-<div class="list-group">
-    <?php foreach ($dataProvider->getModels() as $model): ?>
-        <?php
-        $external_url = $model->external_url;
-        if (is_string($external_url) && $external_url !== '') {
-            $url = $external_url;
-        } else {
-            $url = Url::to(['/Documents/document/download', 'id' => $model->id]);
-        }
-        ?>
-        <a href="<?= Html::encode($url) ?>" class="list-group-item list-group-item-action" target="_blank" rel="noopener">
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <span class="fw-semibold"><?= Html::encode($model->title) ?></span>
-                <?php if ($model->type === 'file' && $model->extension): ?>
-                    <span class="badge text-bg-light border text-uppercase"><?= Html::encode($model->extension) ?></span>
+<?php if ($dataProvider->getCount() === 0): ?>
+    <p class="text-secondary">Документов не найдено.</p>
+<?php else: ?>
+    <div class="list-group">
+        <?php foreach ($dataProvider->getModels() as $model): ?>
+            <?php /* Название ведёт на страницу документа: там описание, предпросмотр и скачивание. */ ?>
+            <a href="<?= Html::encode(Url::to(['/Documents/document/view', 'id' => $model->id])) ?>"
+               class="list-group-item list-group-item-action">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="fw-semibold"><?= Html::encode($model->title) ?></span>
+                    <?php if ($model->type === 'file' && $model->extension): ?>
+                        <span class="badge text-bg-light border text-uppercase"><?= Html::encode($model->extension) ?></span>
+                    <?php endif; ?>
+                    <?php if ($model->type === 'file' && $model->file_size): ?>
+                        <span class="text-secondary small"><?= Yii::$app->formatter->asShortSize($model->file_size, 1) ?></span>
+                    <?php endif; ?>
+                    <?php if ($model->type === 'link'): ?>
+                        <span class="badge text-bg-light border">ссылка</span>
+                    <?php endif; ?>
+
+                    <span class="text-secondary small ms-auto text-nowrap">
+                        <?php if ($model->document_date): ?>
+                            Документ от <?= Yii::$app->formatter->asDate($model->document_date) ?>
+                        <?php elseif ($model->uploaded_at): ?>
+                            Загружен <?= Yii::$app->formatter->asDate($model->uploaded_at) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <?php if ($model->description): ?>
+                    <p class="text-secondary small mb-0 mt-1"><?= Html::encode($model->description) ?></p>
                 <?php endif; ?>
-                <?php if ($model->type === 'file' && $model->file_size): ?>
-                    <span class="text-secondary small"><?= Yii::$app->formatter->asShortSize($model->file_size, 1) ?></span>
-                <?php endif; ?>
-                <span class="text-secondary small ms-auto"><?= Yii::$app->formatter->asDatetime($model->created_at) ?></span>
-            </div>
-            <?php if ($model->description): ?>
-                <p class="text-secondary small mb-0 mt-1"><?= Html::encode($model->description) ?></p>
-            <?php endif; ?>
-        </a>
-    <?php endforeach; ?>
-</div>
+            </a>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>

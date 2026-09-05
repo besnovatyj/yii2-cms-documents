@@ -5,14 +5,17 @@
  */
 
 use Besnovatyj\Documents\entities\Category;
+use Besnovatyj\Documents\forms\frontend\DocumentFilterForm;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use yii\base\Module;
+use yii\bootstrap5\LinkPager;
 use yii\data\DataProviderInterface;
 use yii\helpers\Url;
 use yii\web\View;
 
 /* @var $this View */
 /* @var $dataProvider DataProviderInterface */
+/* @var $filter DocumentFilterForm */
 /* @var $category Category */
 
 $this->title = 'Документы';
@@ -35,7 +38,14 @@ if (Yii::$app->getModule('Config') instanceof Module) {
 ?>
 
 <section class="container mt-3 mb-5">
+    <?= $this->render('_filter', [
+        'filter' => $filter,
+        'action' => ['category', 'slug' => $category->slug],
+    ]) ?>
+
     <?= $this->render('_list', [
         'dataProvider' => $dataProvider
     ]) ?>
+
+    <?= LinkPager::widget(['pagination' => $dataProvider->getPagination()]) ?>
 </section>

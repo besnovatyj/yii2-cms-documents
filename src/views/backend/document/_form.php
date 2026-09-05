@@ -16,6 +16,19 @@ use yii\web\View;
 /* @var $model DocumentForm */
 
 $this->registerJs(file_get_contents(__DIR__ . '/_script.js'), $this::POS_END);
+
+// Подсказка под полем выбора файла: какой файл загружен сейчас и что с ним будет.
+$currentFileHint = null;
+if ($model->hasCurrentFile()) {
+    $name = Html::encode($model->currentFileName());
+    $currentFileHint = 'Загружен: ' . ($model->currentFileUrl() !== null
+            ? Html::a($name, $model->currentFileUrl(), ['target' => '_blank', 'rel' => 'noopener'])
+            : $name);
+    if ($model->currentFileSize() !== null) {
+        $currentFileHint .= ' (' . Yii::$app->formatter->asShortSize($model->currentFileSize(), 1) . ')';
+    }
+    $currentFileHint .= '. Выбор нового файла заменит его.';
+}
 ?>
 <?php $form = ActiveForm::begin([
     'options' => ['enctype' => 'multipart/form-data']
@@ -49,10 +62,22 @@ $this->registerJs(file_get_contents(__DIR__ . '/_script.js'), $this::POS_END);
                                         Html::radio($name, $checked, ['value' => $value, 'class' => 'form-check-input', 'id' => $name . $value]) .
                                         Html::label($label, $name . $value, ['class' => 'form-check-label']), ['class' => 'form-check']);
                                 }]) ?>
+
+                            <?php /* Нативные поля браузера: календарь рисует сам браузер, свой скрипт ради двух дат не нужен.
+                                     datetime-local принимает значение только через «T» — обратно в пробел его переводит форма. */ ?>
+                            <?= $form->field($model, 'uploadedAt')->input('datetime-local', [
+                                'class' => 'form-control',
+                                'value' => $model->uploadedAt !== null ? str_replace(' ', 'T', $model->uploadedAt) : null,
+                            ])->hint('Проставляется при создании, можно изменить') ?>
+                            <?= $form->field($model, 'documentDate')->input('date', ['class' => 'form-control'])
+                                ->hint('Дата самого документа: приказа, письма и т.п.') ?>
                         </div>
                         <div class="col-md-6">
                             <?= $form->field($model, 'description')->textarea(['rows' => '5', 'class' => 'form-control']) ?>
-                            <?= $form->field($model, 'file', ['options' => ['id' => 'file-field', 'class' => $model->source !== DocumentForm::SOURCE_FILE ? ' d-none' : '']])->fileInput(['class' => 'rounded-0']) ?>
+                            <?php /* Поле выбора файла пустует и у заполненного документа — что именно загружено сейчас, видно из подсказки. */ ?>
+                            <?= $form->field($model, 'file', ['options' => ['id' => 'file-field', 'class' => $model->source !== DocumentForm::SOURCE_FILE ? ' d-none' : '']])
+                                ->fileInput(['class' => 'rounded-0'])
+                                ->hint($model->hasCurrentFile() ? $currentFileHint : false) ?>
                             <?= $form->field($model, 'externalUrl', ['options' => ['id' => 'link-field', 'class' => $model->source !== DocumentForm::SOURCE_LINK ? ' d-none' : '']])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
                         </div>
                     </div>
