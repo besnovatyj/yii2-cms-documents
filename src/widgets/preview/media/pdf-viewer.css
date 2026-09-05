@@ -33,6 +33,12 @@
     text-align: center;
 }
 
+/* Кнопки могут быть оформлены темой, а приглушённого состояния у неё может не быть. */
+.documents-pdf__toolbar button:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
 .documents-pdf__stage {
     flex: 1 1 auto;
     overflow: auto;

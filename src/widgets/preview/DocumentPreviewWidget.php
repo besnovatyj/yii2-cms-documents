@@ -45,6 +45,17 @@ class DocumentPreviewWidget extends Widget
     public string $pdfHeight = '80vh';
 
     /**
+     * Директория с представлениями `image`, `pdf` и `archive`.
+     *
+     * Тема оформления подставляет сюда свою: представления виджета лежат вне
+     * `src/views` пакета, и карта путей темы до них не достаёт. Логика выбора
+     * вида при этом остаётся здесь и в теме не повторяется.
+     *
+     * null — представления пакета.
+     */
+    public ?string $viewPath = null;
+
+    /**
      * {@inheritdoc}
      *
      * @throws InvalidConfigException
@@ -56,6 +67,14 @@ class DocumentPreviewWidget extends Widget
         if (!isset($this->document)) {
             throw new InvalidConfigException('DocumentPreviewWidget: свойство "document" должно быть задано.');
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getViewPath(): string
+    {
+        return $this->viewPath ?? parent::getViewPath();
     }
 
     /**
