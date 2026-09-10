@@ -15,6 +15,11 @@ use Besnovatyj\Contracts\menu\MenuTarget;
 use Besnovatyj\Contracts\menu\MenuTargetProvider;
 use Besnovatyj\Contracts\search\SearchSource;
 use Besnovatyj\Contracts\search\SearchableProvider;
+use Besnovatyj\Contracts\sitemap\ChangeFrequency;
+use Besnovatyj\Contracts\sitemap\SitemapFreshness;
+use Besnovatyj\Contracts\sitemap\SitemapProvider;
+use Besnovatyj\Contracts\sitemap\SitemapSection;
+use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Documents\entities\Category;
 use Besnovatyj\Documents\readModels\CategoryReadRepository;
 use Besnovatyj\Documents\readModels\DocumentsReadRepository;
@@ -22,7 +27,8 @@ use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 
 class Module extends CmsModule implements
     DeclaresModule, ProvidesAdminMenu,
-    ProvidesDirectories, ProvidesMigrations, MenuTargetProvider, SearchableProvider
+    ProvidesDirectories, ProvidesMigrations, MenuTargetProvider, SearchableProvider,
+    SitemapProvider, SitemapFreshness
 {
     public const bool EDITABLE = true;
     public const string VERSION = '1.0.0';
@@ -99,4 +105,84 @@ class Module extends CmsModule implements
         };
     }
 
+
+    /**
+     * Разделы карты сайта. Реализация {@see SitemapProvider}; вызывается только модулем карты,
+     * если он установлен.
+     *
+     * Сами документы объявлены «только для XML»: на человеческой карте нужен путь к нужной бумаге —
+     * категории, — а не список из сотни приказов с длинными названиями. Роботу, наоборот, нужны все
+     * адреса.
+     *
+     * @return SitemapSection[]
+     */
+    public function sitemapSections(): array
+    {
+        return [
+            new SitemapSection(
+                key: 'documents.category',
+                label: 'Документы',
+                changeFrequency: ChangeFrequency::Weekly,
+                priority: 0.5,
+                order: 80,
+                icon: 'bi bi-folder',
+            ),
+            new SitemapSection(
+                key: 'documents.document',
+                label: 'Файлы документов',
+                changeFrequency: ChangeFrequency::Yearly,
+                priority: 0.4,
+                inHtmlMap: false,
+                order: 85,
+                icon: 'bi bi-file-earmark-text',
+            ),
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sitemapUrls(string $section): iterable
+    {
+        return match ($section) {
+            'documents.document' => (new DocumentsReadRepository())->sitemapUrls(),
+            'documents.category' => $this->categorySitemapUrls(),
+            default => [],
+        };
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Отпечаток есть только у документов: в дереве категорий колонок времени нет
+     * (см. {@see CategoryReadRepository::sitemapUrls()}).
+     */
+    public function sitemapRevision(string $section): ?string
+    {
+        return match ($section) {
+            'documents.document' => (new DocumentsReadRepository())->sitemapRevision(),
+            default => null,
+        };
+    }
+
+    /**
+     * Категории документов, а перед ними — сам список.
+     *
+     * Список — корень ветки и для робота, и для читателя: на человеческой карте он открывает блок,
+     * в XML это обычный адрес с высоким приоритетом. Отдельным разделом карты его заводить незачем —
+     * раздел из одного адреса только засоряет и настройки, и индекс файлов.
+     *
+     * @return iterable<SitemapUrl>
+     */
+    private function categorySitemapUrls(): iterable
+    {
+        yield new SitemapUrl(
+            route: '/Documents/document/index',
+            title: 'Документы',
+            changeFrequency: ChangeFrequency::Weekly,
+            priority: 0.9,
+        );
+
+        yield from (new CategoryReadRepository())->sitemapUrls();
+    }
 }

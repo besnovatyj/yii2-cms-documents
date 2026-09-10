@@ -9,6 +9,7 @@ namespace Besnovatyj\Documents\readModels;
 
 
 use Besnovatyj\Contracts\search\SearchDocument;
+use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Documents\entities\Category;
 use Besnovatyj\Documents\entities\Document;
 use Besnovatyj\Documents\forms\frontend\DocumentFilterForm;
@@ -164,5 +165,51 @@ class DocumentsReadRepository
         if ($to = $filter->dateToValue()) {
             $query->andWhere(['<=', $column, $to]);
         }
+    }
+
+
+    /**
+     * Документы для карты сайта.
+     *
+     * Тот же инвариант, что у поиска, — только публично доступное. В карту идёт страница документа,
+     * а не файл: скачивание (`/Documents/document/download`) — действие, а не адрес для индекса.
+     *
+     * `lastmod` — дата изменения ЗАПИСИ, а не дата самого документа: поиску осмысленна дата приказа,
+     * а краулеру — «поменялась ли страница».
+     *
+     * @return iterable<SitemapUrl>
+     */
+    public function sitemapUrls(): iterable
+    {
+        $query = Document::find()->alias('d')->visible('d')->orderBy(['d.id' => SORT_DESC]);
+
+        /** @var Document $document */
+        foreach ($query->each(200) as $document) {
+            yield new SitemapUrl(
+                route: '/Documents/document/view',
+                params: ['id' => (int)$document->id],
+                title: (string)$document->title,
+                // updated_at — колонка DATETIME, а контракт ждёт Unix-timestamp.
+                lastModified: $document->updated_at === null
+                    ? null
+                    : (strtotime((string)$document->updated_at) ?: null),
+            );
+        }
+    }
+
+    /**
+     * Отпечаток состояния документов для карты сайта: сколько их и когда правили последний раз.
+     *
+     * Одного `MAX(updated_at)` мало — он не замечает удаления документа, а удалённая страница
+     * обязана исчезнуть из карты. Пара «сколько + когда» это закрывает и стоит одного запроса.
+     */
+    public function sitemapRevision(): string
+    {
+        $row = Document::find()->alias('d')->visible('d')
+            ->select(['total' => 'COUNT(*)', 'latest' => 'MAX(d.updated_at)'])
+            ->asArray()
+            ->one();
+
+        return ((string)($row['total'] ?? '0')) . ':' . ((string)($row['latest'] ?? ''));
     }
 }
