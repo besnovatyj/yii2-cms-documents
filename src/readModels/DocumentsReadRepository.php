@@ -8,6 +8,7 @@
 namespace Besnovatyj\Documents\readModels;
 
 
+use Besnovatyj\Contracts\search\SearchDocument;
 use Besnovatyj\Documents\entities\Category;
 use Besnovatyj\Documents\entities\Document;
 use Besnovatyj\Documents\forms\frontend\DocumentFilterForm;
@@ -67,6 +68,61 @@ class DocumentsReadRepository
         /** @var $documents Document */
         $documents = Document::find()->active()->andWhere(['id' => $id])->one();
         return $documents;
+    }
+
+    /**
+     * Документы для сквозного поиска — только публично доступные ({@see DocumentsQuery::visible()}).
+     *
+     * Генератор с чтением пачками: полная переиндексация не должна держать в памяти весь архив.
+     * Поля отдаются СЫРЫМИ — нормализация текста едина для всех модулей и выполняется модулем поиска.
+     *
+     * В ключевые слова уходит то, по чему документ ищут, но чего нет в названии: категория,
+     * оригинальное имя файла и расширение («приказ pdf», «смета xlsx»).
+     *
+     * @return iterable<SearchDocument>
+     */
+    public function searchDocuments(): iterable
+    {
+        $query = Document::find()->alias('d')->visible('d')
+            ->with('category')
+            ->orderBy(['d.id' => SORT_ASC]);
+
+        /** @var Document $document */
+        foreach ($query->each(100) as $document) {
+            $keywords = array_filter([
+                $document->category?->name,
+                $document->original_name,
+                $document->extension,
+            ]);
+
+            yield new SearchDocument(
+                type: 'documents.document',
+                entityId: (int)$document->id,
+                route: '/Documents/document/view',
+                params: ['id' => (int)$document->id],
+                title: (string)$document->title,
+                text: (string)$document->description,
+                keywords: implode(' ', $keywords),
+                // Для документа осмысленна его собственная дата (дата приказа, письма), а не
+                // дата записи в базе; при её отсутствии — дата загрузки файла, затем создания.
+                // Все три — строковые колонки DATE/DATETIME, поэтому только strtotime().
+                date: $this->documentTimestamp($document),
+            );
+        }
+    }
+
+    /**
+     * Дата документа для карточки выдачи и сортировки по свежести, в виде Unix-timestamp.
+     */
+    private function documentTimestamp(Document $document): ?int
+    {
+        foreach ([$document->document_date, $document->uploaded_at, $document->created_at] as $value) {
+            if ($value !== null && $value !== '' && ($timestamp = strtotime((string)$value)) !== false) {
+                return $timestamp;
+            }
+        }
+
+        return null;
     }
 
     /**

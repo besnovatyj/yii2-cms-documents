@@ -7,6 +7,7 @@
 
 namespace Besnovatyj\Documents\entities;
 
+use Besnovatyj\Documents\entities\queries\CategoryQuery;
 use Besnovatyj\Meta\Meta;
 use Besnovatyj\Meta\MetaBehavior;
 use Besnovatyj\TreeManager\Manager\entities\Node;
@@ -28,7 +29,21 @@ use yii\db\ActiveQuery;
  */
 class Category extends Node
 {
+    /** Категория снята с публикации: не показывается на фронте и не участвует в поиске. */
+    public const int STATUS_INACTIVE = 0;
+
+    /** Категория опубликована. */
+    public const int STATUS_ACTIVE = 1;
+
     public Meta $meta;
+
+    /**
+     * Опубликована ли категория сама по себе (без учёта предков — см. {@see CategoryQuery::visible()}).
+     */
+    public function isActive(): bool
+    {
+        return (int)$this->status === self::STATUS_ACTIVE;
+    }
 
     public static function create($name, $slug, $description, Meta $meta): self
     {
@@ -74,6 +89,11 @@ class Category extends Node
             MetaBehavior::class,
             ...parent::behaviors()
         ];
+    }
+
+    public static function find(): CategoryQuery
+    {
+        return new CategoryQuery(static::class);
     }
 
 }
