@@ -29,14 +29,14 @@ class DocumentsReadRepository
 
     public function count(): int
     {
-        return Document::find()->active()->count();
+        return Document::find()->visible()->count();
     }
 
     public function getAllByRange(int $offset, int $limit): array
     {
         return Document::find()
             ->alias('d')
-            ->active('d')
+            ->visible('d')
             ->orderBy(['created_at' => SORT_ASC])
             ->limit($limit)
             ->offset($offset)
@@ -45,18 +45,18 @@ class DocumentsReadRepository
 
     public function getAllIterator(): iterable
     {
-        return Document::find()->alias('d')->active('d')->each();
+        return Document::find()->alias('d')->visible('d')->each();
     }
 
     public function getAll(?DocumentFilterForm $filter = null): DataProviderInterface
     {
-        $query = Document::find()->alias('d')->active('d');
+        $query = Document::find()->alias('d')->visible('d');
         return $this->getProvider($query, $filter);
     }
 
     public function getAllByCategory(Category $category, ?DocumentFilterForm $filter = null): DataProviderInterface
     {
-        $query = Document::find()->alias('d')->active('d')->with('category');
+        $query = Document::find()->alias('d')->visible('d')->with('category');
         $ids = $this->treeScope->descendantIds($category, andSelf: true);
         $query->andWhere(['d.category_id' => $ids]);
         $query->groupBy('d.id');
@@ -66,7 +66,7 @@ class DocumentsReadRepository
     public function find($id): ?Document
     {
         /** @var $documents Document */
-        $documents = Document::find()->active()->andWhere(['id' => $id])->one();
+        $documents = Document::find()->visible()->andWhere(['id' => $id])->one();
         return $documents;
     }
 
