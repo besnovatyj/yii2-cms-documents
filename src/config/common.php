@@ -32,8 +32,9 @@ return [
             'rules' => [
                 'documents'                           => 'Documents/document/index',
                 'documents/<id:\d+>'                  => 'Documents/document/view',
-                'documents/<slug:[\w\-]+>/<page:\d+>' => 'Documents/document/category', // <page> — пагинация
-                'documents/<slug:[\w\-]+>'            => 'Documents/document/category',
+                // slug начинается с буквы (конвенция SlugValidator) — иначе slug из одних цифр перекрывался бы <id:\d+>
+                'documents/<slug:[a-z][\w\-]*>/<page:\d+>' => 'Documents/document/category', // <page> — пагинация
+                'documents/<slug:[a-z][\w\-]*>'            => 'Documents/document/category',
             ],
         ],
     ],
