@@ -8,7 +8,6 @@ namespace Besnovatyj\Documents;
 
 use Besnovatyj\Kernel\module\CmsModule;
 use Besnovatyj\Contracts\module\DeclaresModule;
-use Besnovatyj\Contracts\module\ProvidesAdminMenu;
 use Besnovatyj\Contracts\module\ProvidesDirectories;
 use Besnovatyj\Contracts\module\ProvidesMigrations;
 use Besnovatyj\Contracts\menu\MenuTarget;
@@ -26,7 +25,7 @@ use Besnovatyj\Documents\readModels\DocumentsReadRepository;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 
 class Module extends CmsModule implements
-    DeclaresModule, ProvidesAdminMenu,
+    DeclaresModule, 
     ProvidesDirectories, ProvidesMigrations, MenuTargetProvider, SearchableProvider,
     SitemapProvider, SitemapFreshness
 {
@@ -37,7 +36,6 @@ class Module extends CmsModule implements
     public static function moduleId(): string { return self::MODULE_ID; }
     public static function moduleVersion(): string { return self::VERSION; }
     public static function isEditable(): bool { return self::EDITABLE; }
-    public static function adminMenu(): array { return require __DIR__.'/config/adminMenu.php'; }
     public static function moduleConfig(): array { return require __DIR__.'/config/config.php'; }
     public static function migrationPath(): string { return __DIR__.'/migrations'; }
     public static function migrationNamespace(): ?string { return __NAMESPACE__.'\\migrations'; }
